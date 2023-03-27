@@ -15,6 +15,9 @@ kill() {
 
 mkdir -p /tmp/cnosdb/logs
 
+
+docker build -t cnosdb . 
+
 echo "*** run meta cluster ......"
 ./meta/cluster.sh
 
@@ -25,19 +28,25 @@ rm -rf /tmp/cnosdb/2001
 rm -rf /tmp/cnosdb/meta/
 
 echo "*** build cnosdb ......"
-cargo build --package main --bin cnosdb
+#cargo build --package main --bin cnosdb
 
 echo "*** build cnosdb-cli ......"
-cargo build --package client --bin cnosdb-cli
+#cargo build --package client --bin cnosdb-cli
+
 
 echo "*** start CnosDB server 31001......"
-nohup ./target/debug/cnosdb run --config ./config/config_31001.toml > /tmp/cnosdb/logs/data_node.1001.log &
+#nohup ./target/debug/cnosdb run --config ./config/config_31001.toml > /tmp/cnosdb/logs/data_node.1001.log &
+
+docker run --name data1 --net=host -v /home/ubuntu/cnosdb/config/config31001.toml:/etc/config.toml -d cnosdb cnosdb run --config /etc/config.toml  
 
 sleep 1
 
 echo "*** start CnosDB server 32001......"
-nohup ./target/debug/cnosdb run --config ./config/config_32001.toml > /tmp/cnosdb/logs/data_node.2001.log &
+
+docker run --name data2 --net=host -v /home/ubuntu/cnosdb/config/config32001.toml:/etc/config.toml -d cnosdb cnosdb run --config /etc/config.toml 
+
+#nohup ./target/debug/cnosdb run --config ./config/config_32001.toml > /tmp/cnosdb/logs/data_node.2001.log &
 
 echo "\n*** CnosDB Data Server Cluster is running ......"
 
-sleep 1000000000
+#sleep 1000000000

@@ -8,7 +8,7 @@ set -o errexit
 
 PROJ_DIR=$(cd `dirname $0`;cd ..;pwd)
 
-cargo build --package meta --bin cnosdb-meta
+#cargo build --package meta --bin cnosdb-meta
 
 kill() {
     if [ "$(uname)" = "Darwin" ]; then
@@ -30,9 +30,9 @@ rpc() {
     echo '---'" rpc(:$uri, $body)"
     {
         if [ ".$body" = "." ]; then
-            curl --silent "127.0.0.1:$uri"
+            curl --silent "10.1.1.241:$uri"
         else
-            curl --silent "127.0.0.1:$uri" -H "Content-Type: application/json" -d "$body"
+            curl --silent "10.1.1.241:$uri" -H "Content-Type: application/json" -d "$body"
         fi
     } | {
         if type jq > /dev/null 2>&1; then
@@ -55,15 +55,21 @@ echo "Start 3 uninitialized cnosdb-meta servers..."
 
 mkdir -p /tmp/cnosdb/logs
 
-nohup ${PROJ_DIR}/target/debug/cnosdb-meta --config ${PROJ_DIR}/meta/config/config_21001.toml > /tmp/cnosdb/logs/meta_node.1.log &
+#nohup ${PROJ_DIR}/target/debug/cnosdb-meta --config ${PROJ_DIR}/meta/config/config_21001.toml > /tmp/cnosdb/logs/meta_node.1.log &
 echo "Server 1 started"
+docker run --name meta1 --net=host -v /home/ubuntu/cnosdb/meta/config/config21001.toml:/etc/config.toml -d cnosdb cnosdb-meta --config /etc/config.toml
+
 sleep 1
 
-nohup ${PROJ_DIR}/target/debug/cnosdb-meta --config ${PROJ_DIR}/meta/config/config_21002.toml > /tmp/cnosdb/logs/meta_node.2.log &
+
+docker run --name meta2 --net=host -v /home/ubuntu/cnosdb/meta/config/config21002.toml:/etc/config.toml -d cnosdb cnosdb-meta --config /etc/config.toml
+#nohup ${PROJ_DIR}/target/debug/cnosdb-meta --config ${PROJ_DIR}/meta/config/config_21002.toml > /tmp/cnosdb/logs/meta_node.2.log &
 echo "Server 2 started"
 sleep 1
 
-nohup ${PROJ_DIR}/target/debug/cnosdb-meta --config ${PROJ_DIR}/meta/config/config_21003.toml > /tmp/cnosdb/logs/meta_node.3.log &
+
+docker run --name meta3 --net=host -v /home/ubuntu/cnosdb/meta/config/config21003.toml:/etc/config.toml -d cnosdb cnosdb-meta --config /etc/config.toml
+#nohup ${PROJ_DIR}/target/debug/cnosdb-meta --config ${PROJ_DIR}/meta/config/config_21003.toml > /tmp/cnosdb/logs/meta_node.3.log &
 echo "Server 3 started"
 sleep 1
 
@@ -75,11 +81,11 @@ sleep 1
 
 echo "Adding node 2 and node 3 as learners, to receive log from leader node 1"
 
-rpc 21001/add-learner       '[2, "127.0.0.1:21002"]'
+rpc 21001/add-learner       '[2, "10.1.1.241:21002"]'
 echo "Node 2 added as leaner"
 sleep 1
 
-rpc 21001/add-learner       '[3, "127.0.0.1:21003"]'
+rpc 21001/add-learner       '[3, "10.1.1.241:21003"]'
 echo "Node 3 added as leaner"
 sleep 1
 
