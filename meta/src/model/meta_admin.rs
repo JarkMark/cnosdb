@@ -66,7 +66,7 @@ impl AdminMeta {
         Self {
             config: Config::default(),
             watch_notify,
-            client: MetaHttpClient::new("".to_string()),
+            client: MetaHttpClient::new(""),
             conn_map: RwLock::new(HashMap::new()),
             data_nodes: RwLock::new(HashMap::new()),
             tenants: RwLock::new(HashMap::new()),
@@ -85,7 +85,7 @@ impl AdminMeta {
         let admin = Arc::new(Self {
             config,
             watch_notify,
-            client: MetaHttpClient::new(meta_url),
+            client: MetaHttpClient::new(&meta_url),
             conn_map: RwLock::new(HashMap::new()),
             data_nodes: RwLock::new(HashMap::new()),
             tenants: RwLock::new(HashMap::new()),
@@ -249,7 +249,7 @@ impl AdminMeta {
         let mut request = (client_id, admin.cluster(), tenants, base_ver);
 
         let cluster_meta = admin.meta_addrs();
-        let client = MetaHttpClient::new(cluster_meta);
+        let client = MetaHttpClient::new(&cluster_meta);
         loop {
             let watch_rsp = client.watch::<command::WatchData>(&request).await;
             if let Ok(watch_data) = watch_rsp {
